@@ -638,7 +638,7 @@
             <strong>Dica:</strong> lembre-se da sequência clássica: fixação, coloração primária, mordente, descoloração, contracoloração e observação.
           </div>
           <ul id="step-list" class="step-list">${passosHtml}</ul>
-          <div id="drag-feedback" class="d-none"></div>
+          <div id="drag-feedback" class="d-none" role="alert" aria-live="polite"></div>
           <div class="d-flex flex-column flex-sm-row gap-2">
             <button id="check-drag" class="btn text-white fw-semibold" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">Validar ordem</button>
             <button id="next-drag" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
@@ -709,7 +709,11 @@
         : `<strong>❌ Ordem incorreta.</strong> Revise a sequência correta:<br>${ordemCorreta}`;
 
       checkButton.disabled = true;
-      document.querySelectorAll(".step-item").forEach((item) => item.setAttribute("draggable", "false"));
+      document.querySelectorAll(".step-item").forEach((item) => {
+        item.setAttribute("draggable", "false");
+        item.setAttribute("aria-disabled", "true");
+        item.setAttribute("aria-label", `${item.getAttribute("aria-label")}, reordenação desativada após validação`);
+      });
       nextButton.classList.remove("d-none");
     }
 
@@ -728,7 +732,7 @@
               </button>
             `).join("")}
           </div>
-          <div id="mcq-feedback" class="d-none"></div>
+          <div id="mcq-feedback" class="d-none" role="alert" aria-live="polite"></div>
           <div>
             <button id="next-mcq" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
           </div>
@@ -786,7 +790,7 @@
               <button class="tf-btn fw-semibold h-100" data-resposta="false">❌ Falso</button>
             </div>
           </div>
-          <div id="tf-feedback" class="d-none"></div>
+          <div id="tf-feedback" class="d-none" role="alert" aria-live="polite"></div>
           <div>
             <button id="next-tf" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
           </div>
