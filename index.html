@@ -509,6 +509,16 @@
       font-size: 0.875rem;
     }
 
+    .touch-drag-clone {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.85;
+      transform: scale(1.05);
+      box-shadow: 0 0.75rem 1.5rem rgba(111, 66, 193, 0.25);
+      list-style: none;
+    }
+
     .d-block { display: block !important; }
     .flex-shrink-0 { flex-shrink: 0 !important; }
     .h-100 { height: 100% !important; }
@@ -919,6 +929,128 @@
             renderizarDragAndDrop();
           }
         }
+      });
+
+      // ── Touch support for mobile devices ──────────────────────────────────
+      let touchClone = null;
+      let touchOffsetX = 0;
+      let touchOffsetY = 0;
+
+      function executarSoltar(clientX, clientY) {
+        // Temporarily hide clone so elementFromPoint sees the element below
+        if (touchClone) touchClone.style.display = "none";
+        const el = document.elementFromPoint(clientX, clientY);
+        if (touchClone) touchClone.style.display = "";
+
+        if (!el) return;
+
+        const orderSlot = el.closest("li[data-slot]");
+        if (orderSlot && orderList.contains(orderSlot)) {
+          const destinoSlot = Number(orderSlot.dataset.slot);
+
+          if (state.arrastandoOrigem === "source") {
+            const origemIndice = state.passosDisponiveis.findIndex((p) => p.id === state.arrastandoId);
+            if (origemIndice === -1) return;
+            const [passo] = state.passosDisponiveis.splice(origemIndice, 1);
+            const atual = state.passosNaOrdem[destinoSlot];
+            if (atual) state.passosDisponiveis.push(atual);
+            state.passosNaOrdem[destinoSlot] = passo;
+          } else if (state.arrastandoOrigem === "order") {
+            if (state.arrastandoSlot === destinoSlot) return;
+            const temp = state.passosNaOrdem[destinoSlot];
+            state.passosNaOrdem[destinoSlot] = state.passosNaOrdem[state.arrastandoSlot];
+            state.passosNaOrdem[state.arrastandoSlot] = temp;
+          }
+
+          renderizarDragAndDrop();
+        } else if (sourceList.contains(el) || el === sourceList) {
+          if (state.arrastandoOrigem === "order" && state.arrastandoSlot !== null) {
+            const passo = state.passosNaOrdem[state.arrastandoSlot];
+            if (passo) {
+              state.passosNaOrdem[state.arrastandoSlot] = null;
+              state.passosDisponiveis.push(passo);
+              renderizarDragAndDrop();
+            }
+          }
+        }
+      }
+
+      function aoIniciarTouch(id, origem, slot) {
+        return function (e) {
+          if (e.touches.length !== 1) return;
+          state.arrastandoId = id;
+          state.arrastandoOrigem = origem;
+          state.arrastandoSlot = slot;
+
+          const item = e.currentTarget;
+          const rect = item.getBoundingClientRect();
+          touchOffsetX = e.touches[0].clientX - rect.left;
+          touchOffsetY = e.touches[0].clientY - rect.top;
+
+          touchClone = item.cloneNode(true);
+          touchClone.className = `${item.className} touch-drag-clone`;
+          touchClone.style.width = `${rect.width}px`;
+          touchClone.style.left = `${rect.left}px`;
+          touchClone.style.top = `${rect.top}px`;
+          document.body.appendChild(touchClone);
+
+          item.classList.add("dragging");
+        };
+      }
+
+      function aoMoverTouch(e) {
+        if (!touchClone) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        touchClone.style.left = `${touch.clientX - touchOffsetX}px`;
+        touchClone.style.top = `${touch.clientY - touchOffsetY}px`;
+
+        limparDragOver();
+
+        touchClone.style.display = "none";
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        touchClone.style.display = "";
+
+        if (el) {
+          const orderSlot = el.closest("li[data-slot]");
+          if (orderSlot && orderList.contains(orderSlot)) {
+            orderSlot.classList.add("drag-over");
+          } else if (sourceList.contains(el) || el === sourceList) {
+            if (state.arrastandoOrigem === "order") {
+              sourceList.classList.add("drag-over-zone");
+            }
+          }
+        }
+      }
+
+      function aoTerminarTouch(e) {
+        if (!touchClone) return;
+        const touch = e.changedTouches[0];
+
+        touchClone.remove();
+        touchClone = null;
+        limparDragOver();
+        document.querySelectorAll(".dragging").forEach((el) => el.classList.remove("dragging"));
+
+        executarSoltar(touch.clientX, touch.clientY);
+      }
+
+      // Attach touch handlers to source items
+      sourceList.querySelectorAll(".step-item").forEach((item) => {
+        item.addEventListener("touchstart", aoIniciarTouch(
+          Number(item.dataset.id), "source", null
+        ), { passive: true });
+        item.addEventListener("touchmove", aoMoverTouch, { passive: false });
+        item.addEventListener("touchend", aoTerminarTouch);
+      });
+
+      // Attach touch handlers to filled order items
+      orderList.querySelectorAll(".step-item.in-order").forEach((item) => {
+        item.addEventListener("touchstart", aoIniciarTouch(
+          Number(item.dataset.id), "order", Number(item.dataset.slot)
+        ), { passive: true });
+        item.addEventListener("touchmove", aoMoverTouch, { passive: false });
+        item.addEventListener("touchend", aoTerminarTouch);
       });
     }
 
