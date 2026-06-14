@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coloração de Gram - Desafio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --gram-purple: #6f42c1;
+      --gram-pink: #d63384;
+      --gram-light: #f4f1f9;
+      --gram-gray: #e9ecef;
+      --gram-dark: #3d246c;
+      --success-soft: #d1e7dd;
+      --danger-soft: #f8d7da;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(214, 51, 132, 0.18), transparent 30%),
+        radial-gradient(circle at top left, rgba(111, 66, 193, 0.18), transparent 35%),
+        linear-gradient(180deg, #faf8fd 0%, #f4f1f9 100%);
+      color: #212529;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: min(100% - 2rem, 1140px);
+      margin-inline: auto;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: -0.75rem;
+    }
+
+    .row > * {
+      padding: 0.75rem;
+      width: 100%;
+    }
+
+    .col-md-5,
+    .col-md-6,
+    .col-lg-4,
+    .col-lg-8 {
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .col-md-5 {
+        width: 41.66666667%;
+      }
+
+      .col-md-6 {
+        width: 50%;
+      }
+
+      .flex-md-row {
+        flex-direction: row !important;
+      }
+    }
+
+    @media (min-width: 992px) {
+      .col-lg-4 {
+        width: 33.33333333%;
+      }
+
+      .col-lg-8 {
+        width: 66.66666667%;
+      }
+    }
+
+    .app-shell {
+      max-width: 900px;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    .d-flex {
+      display: flex !important;
+    }
+
+    .d-grid {
+      display: grid !important;
+    }
+
+    .flex-column {
+      flex-direction: column;
+    }
+
+    .flex-fill {
+      flex: 1 1 0%;
+    }
+
+    .justify-content-between {
+      justify-content: space-between;
+    }
+
+    .justify-content-center {
+      justify-content: center;
+    }
+
+    .align-items-center {
+      align-items: center;
+    }
+
+    .align-items-start {
+      align-items: flex-start;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .text-white {
+      color: #fff !important;
+    }
+
+    .text-dark {
+      color: #212529 !important;
+    }
+
+    .text-muted {
+      color: #6c757d !important;
+    }
+
+    .fw-bold {
+      font-weight: 700;
+    }
+
+    .fw-medium {
+      font-weight: 500;
+    }
+
+    .fw-semibold {
+      font-weight: 600;
+    }
+
+    .fs-2 {
+      font-size: 2rem;
+    }
+
+    .fs-4 {
+      font-size: 1.5rem;
+    }
+
+    .fs-5 {
+      font-size: 1.25rem;
+    }
+
+    .fs-6 {
+      font-size: 1rem;
+    }
+
+    .lead {
+      font-size: 1.125rem;
+    }
+
+    .h3 {
+      font-size: 1.75rem;
+      margin: 0;
+    }
+
+    .display-6 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin: 0;
+    }
+
+    .mb-0 { margin-bottom: 0 !important; }
+    .mb-2 { margin-bottom: 0.5rem !important; }
+    .mb-3 { margin-bottom: 1rem !important; }
+    .mb-4 { margin-bottom: 1.5rem !important; }
+    .mt-2 { margin-top: 0.5rem !important; }
+
+    .p-3 { padding: 1rem !important; }
+    .p-4 { padding: 1.5rem !important; }
+    .p-5 { padding: 3rem !important; }
+    .px-4 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+    .py-4 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+    .py-5 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+
+    @media (min-width: 768px) {
+      .p-md-5 { padding: 3rem !important; }
+      .py-md-5 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+    }
+
+    .mx-auto {
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    .gap-2 { gap: 0.5rem !important; }
+    .gap-3 { gap: 1rem !important; }
+    .gap-4 { gap: 1.5rem !important; }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 0.9rem;
+      padding: 0.8rem 1.2rem;
+      font-size: 1rem;
+      line-height: 1.2;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-light {
+      background: #fff;
+      color: var(--gram-dark);
+    }
+
+    .btn-outline-secondary {
+      background: transparent;
+      border-color: #adb5bd;
+      color: #495057;
+    }
+
+    .btn-lg {
+      padding: 1rem 1.4rem;
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .rounded-pill {
+      border-radius: 999px;
+    }
+
+    .text-bg-light {
+      background: #f8f9fa;
+      color: #212529;
+    }
+
+    .gram-card {
+      border: 0;
+      border-radius: 1.5rem;
+      box-shadow: 0 1.2rem 2.8rem rgba(61, 36, 108, 0.12);
+      overflow: hidden;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));
+      color: #fff;
+    }
+
+    .hero-badge,
+    .challenge-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .score-pill {
+      background: #fff;
+      border-radius: 999px;
+      padding: 0.75rem 1rem;
+      box-shadow: inset 0 0 0 1px rgba(111, 66, 193, 0.1);
+    }
+
+    .progress {
+      height: 0.9rem;
+      border-radius: 999px;
+      background: #efe8fa;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--gram-purple), var(--gram-pink));
+      border-radius: 999px;
+    }
+
+    .challenge-surface {
+      background: #fff;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(111, 66, 193, 0.08);
+    }
+
+    .step-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .step-item {
+      background: var(--gram-light);
+      border: 2px solid transparent;
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: grab;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    .step-item:hover,
+    .step-item.drag-over {
+      border-color: rgba(214, 51, 132, 0.45);
+      box-shadow: 0 0.75rem 1.5rem rgba(111, 66, 193, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .step-item.dragging {
+      opacity: 0.55;
+      transform: scale(0.98);
+    }
+
+    .option-btn,
+    .tf-btn {
+      text-align: left;
+      border-radius: 1rem;
+      border: 2px solid transparent;
+      background: var(--gram-light);
+      padding: 0.95rem 1rem;
+      width: 100%;
+      transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .option-btn:hover,
+    .tf-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(111, 66, 193, 0.35);
+    }
+
+    .option-btn.correct,
+    .tf-btn.correct {
+      background: var(--success-soft);
+      border-color: #198754;
+      color: #14532d;
+    }
+
+    .option-btn.incorrect,
+    .tf-btn.incorrect {
+      background: var(--danger-soft);
+      border-color: #dc3545;
+      color: #842029;
+    }
+
+    .feedback-box {
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid transparent;
+    }
+
+    .feedback-box.success {
+      background: var(--success-soft);
+      border-color: #198754;
+      color: #14532d;
+    }
+
+    .feedback-box.error {
+      background: var(--danger-soft);
+      border-color: #dc3545;
+      color: #842029;
+    }
+
+    .icon-bubble {
+      display: inline-grid;
+      place-items: center;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: rgba(111, 66, 193, 0.1);
+      font-size: 1.4rem;
+    }
+
+    .star {
+      font-size: 2.2rem;
+      opacity: 0.3;
+    }
+
+    .star.filled {
+      opacity: 1;
+    }
+
+    .soft-note {
+      background: rgba(111, 66, 193, 0.06);
+      border-left: 4px solid var(--gram-purple);
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container py-4 py-md-5">
+    <div class="app-shell mx-auto">
+      <section id="start-screen" class="gram-card">
+        <div class="hero-banner p-4 p-md-5 text-center">
+          <span class="hero-badge mb-3">🧫 Microbiologia • 🏆 Desafio gamificado</span>
+          <h1 class="display-6 fw-bold mb-3">Coloração de Gram - Desafio</h1>
+          <p class="lead mb-4">
+            Organize as etapas, responda ao quiz e teste seus conhecimentos com verdadeiro ou falso.
+          </p>
+          <button id="start-button" class="btn btn-light btn-lg px-4 fw-semibold">Iniciar</button>
+        </div>
+      </section>
+
+      <section id="game-screen" class="d-none">
+        <div class="gram-card p-4 p-md-5">
+          <div class="row g-3 align-items-center mb-4">
+            <div class="col-lg-8">
+              <span class="challenge-badge text-white mb-3" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">🎯 Missão em andamento</span>
+              <div class="d-flex flex-column flex-md-row gap-3">
+                <div class="score-pill flex-fill">
+                  <small class="text-muted d-block">Pontuação</small>
+                  <strong id="score-value" class="fs-4 text-dark">0 pts</strong>
+                </div>
+                <div class="score-pill flex-fill">
+                  <small class="text-muted d-block">Progresso</small>
+                  <strong id="progress-label" class="fs-6 text-dark">0 de 0 desafios concluídos</strong>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="score-pill">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <small class="text-muted">Barra de progresso</small>
+                  <small id="progress-percent" class="fw-semibold text-dark">0%</small>
+                </div>
+                <div class="progress">
+                  <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="challenge-container" class="challenge-surface p-4 p-md-5"></div>
+        </div>
+      </section>
+
+      <section id="end-screen" class="d-none">
+        <div class="gram-card text-center">
+          <div class="hero-banner p-4 p-md-5">
+            <span class="hero-badge mb-3">🏁 Avaliação concluída</span>
+            <h2 class="fw-bold mb-3">Parabéns pelo desafio!</h2>
+            <p class="mb-0">Confira sua pontuação final e as estrelas conquistadas.</p>
+          </div>
+          <div class="p-4 p-md-5">
+            <div class="row g-3 justify-content-center mb-4">
+              <div class="col-md-5">
+                <div class="score-pill">
+                  <small class="text-muted d-block">Pontuação total</small>
+                  <strong id="final-score" class="fs-2 text-dark">0 pts</strong>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="score-pill">
+                  <small class="text-muted d-block">Estrelas conquistadas</small>
+                  <strong id="final-stars-text" class="fs-5 text-dark">⭐</strong>
+                </div>
+              </div>
+            </div>
+            <div id="final-stars" class="d-flex justify-content-center gap-2 mb-4" aria-label="Estrelas"></div>
+            <button id="restart-button" class="btn btn-lg text-white px-4 fw-semibold" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const gramSteps = [
+      { id: 1, icon: "🔥", texto: "Fixar o esfregaço pelo calor" },
+      { id: 2, icon: "💜💧", texto: "Cobrir a lâmina com cristal violeta e lavar com H₂O" },
+      { id: 3, icon: "🧪💧", texto: "Aplicar lugol e lavar com H₂O" },
+      { id: 4, icon: "🧴💧", texto: "Aplicar álcool-acetona e lavar com H₂O" },
+      { id: 5, icon: "🩷💧", texto: "Cobrir com fucsina fenicada ou safranina e lavar com H₂O" },
+      { id: 6, icon: "🔬", texto: "Examinar ao microscópio" }
+    ];
+
+    // CADASTRO DE QUESTÕES DE MÚLTIPLA ESCOLHA:
+    // Adicione novas perguntas neste array usando a estrutura abaixo.
+    // Exemplo:
+    // { pergunta: "Qual etapa vem após o lugol?", opcoes: ["Cristal violeta", "Álcool-acetona", "Microscopia"], respostaCorreta: 1, explicacao: "Após o lugol, ocorre a descoloração com álcool-acetona." }
+    const questoesMultiplaEscolha = [
+      {
+        pergunta: "Qual reagente é usado como corante primário na coloração de Gram?",
+        opcoes: ["Safranina", "Cristal violeta", "Lugol", "Álcool-acetona"],
+        respostaCorreta: 1,
+        explicacao: "O cristal violeta é o primeiro corante aplicado e marca inicialmente todas as células."
+      },
+      {
+        pergunta: "Qual etapa tem a função de descolorir as bactérias Gram-negativas?",
+        opcoes: ["Aplicar lugol", "Examinar ao microscópio", "Aplicar álcool-acetona", "Fixar pelo calor"],
+        respostaCorreta: 2,
+        explicacao: "O álcool-acetona remove o complexo corante das Gram-negativas, preparando a etapa de contraste."
+      }
+    ];
+
+    // CADASTRO DE QUESTÕES DE VERDADEIRO OU FALSO:
+    // Adicione novas afirmações neste array usando a estrutura abaixo.
+    // Exemplo:
+    // { afirmacao: "A safranina pode ser usada como contracorante.", resposta: true, explicacao: "Ela colore as bactérias que perderam o cristal violeta." }
+    const questoesVerdadeiroFalso = [
+      {
+        afirmacao: "Após o cristal violeta, a lâmina deve ser lavada com água.",
+        resposta: true,
+        explicacao: "A lavagem com H₂O remove o excesso do reagente antes da etapa seguinte."
+      },
+      {
+        afirmacao: "O microscópio é utilizado antes da aplicação da fucsina ou safranina.",
+        resposta: false,
+        explicacao: "A observação é a última etapa, feita somente após a contracoloração."
+      }
+    ];
+
+    const startScreen = document.getElementById("start-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const endScreen = document.getElementById("end-screen");
+    const challengeContainer = document.getElementById("challenge-container");
+    const scoreValue = document.getElementById("score-value");
+    const progressLabel = document.getElementById("progress-label");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressBar = document.getElementById("progress-bar");
+    const finalScore = document.getElementById("final-score");
+    const finalStars = document.getElementById("final-stars");
+    const finalStarsText = document.getElementById("final-stars-text");
+
+    const buildChallenges = () => ([
+      { tipo: "drag" },
+      ...questoesMultiplaEscolha.map((questao, indice) => ({ tipo: "mcq", indice, ...questao })),
+      ...questoesVerdadeiroFalso.map((questao, indice) => ({ tipo: "vf", indice, ...questao }))
+    ]);
+
+    const state = {
+      desafios: [],
+      desafioAtual: 0,
+      concluidos: 0,
+      pontuacao: 0,
+      passosOrdenados: [],
+      arrastandoId: null
+    };
+
+    function embaralhar(lista) {
+      const copia = [...lista];
+      for (let i = copia.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copia[i], copia[j]] = [copia[j], copia[i]];
+      }
+      return copia;
+    }
+
+    function atualizarPainel() {
+      const total = state.desafios.length;
+      const percentual = total ? Math.round((state.concluidos / total) * 100) : 0;
+      scoreValue.textContent = `${state.pontuacao} pts`;
+      progressLabel.textContent = `${state.concluidos} de ${total} desafios concluídos`;
+      progressPercent.textContent = `${percentual}%`;
+      progressBar.style.width = `${percentual}%`;
+      progressBar.setAttribute("aria-valuenow", String(percentual));
+    }
+
+    function registrarResposta(acertou) {
+      state.pontuacao += acertou ? 10 : -5;
+      state.concluidos += 1;
+      atualizarPainel();
+    }
+
+    function renderizarDesafio() {
+      const desafio = state.desafios[state.desafioAtual];
+      if (!desafio) {
+        renderizarTelaFinal();
+        return;
+      }
+
+      if (desafio.tipo === "drag") {
+        renderizarDragAndDrop();
+        return;
+      }
+
+      if (desafio.tipo === "mcq") {
+        renderizarMultiplaEscolha(desafio);
+        return;
+      }
+
+      renderizarVerdadeiroFalso(desafio);
+    }
+
+    function avancarDesafio() {
+      state.desafioAtual += 1;
+      renderizarDesafio();
+    }
+
+    function renderizarDragAndDrop() {
+      const passosHtml = state.passosOrdenados.map((passo, indice) => `
+        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}">
+          <div class="d-flex gap-3 align-items-start">
+            <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
+            <div>
+              <div class="fw-bold text-dark">Etapa ${indice + 1}</div>
+              <div>${passo.texto}</div>
+            </div>
+          </div>
+        </li>
+      `).join("");
+
+      challengeContainer.innerHTML = `
+        <div class="d-flex flex-column gap-4">
+          <div>
+            <span class="badge rounded-pill text-bg-light text-dark mb-3">Desafio 1 • Drag-and-drop</span>
+            <h2 class="h3 fw-bold mb-2">Coloque as etapas da coloração de Gram na ordem correta</h2>
+            <p class="text-muted mb-0">Arraste os cartões para reorganizar o procedimento do início ao fim.</p>
+          </div>
+          <div class="soft-note p-3">
+            <strong>Dica:</strong> lembre-se da sequência clássica: fixação, coloração primária, mordente, descoloração, contracoloração e observação.
+          </div>
+          <ul id="step-list" class="step-list">${passosHtml}</ul>
+          <div id="drag-feedback" class="d-none"></div>
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            <button id="check-drag" class="btn text-white fw-semibold" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">Validar ordem</button>
+            <button id="next-drag" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
+          </div>
+        </div>
+      `;
+
+      configurarEventosDrag();
+      document.getElementById("check-drag").addEventListener("click", validarOrdemPassos);
+      document.getElementById("next-drag").addEventListener("click", avancarDesafio);
+    }
+
+    function configurarEventosDrag() {
+      const stepList = document.getElementById("step-list");
+      const itens = Array.from(stepList.querySelectorAll(".step-item"));
+
+      itens.forEach((item) => {
+        item.addEventListener("dragstart", (event) => {
+          state.arrastandoId = Number(event.currentTarget.dataset.id);
+          event.currentTarget.classList.add("dragging");
+        });
+
+        item.addEventListener("dragend", (event) => {
+          event.currentTarget.classList.remove("dragging");
+          state.arrastandoId = null;
+          itens.forEach((entry) => entry.classList.remove("drag-over"));
+        });
+
+        item.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          event.currentTarget.classList.add("drag-over");
+        });
+
+        item.addEventListener("dragleave", (event) => {
+          event.currentTarget.classList.remove("drag-over");
+        });
+
+        item.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const destinoId = Number(event.currentTarget.dataset.id);
+          event.currentTarget.classList.remove("drag-over");
+
+          if (!state.arrastandoId || state.arrastandoId === destinoId) {
+            return;
+          }
+
+          const origemIndice = state.passosOrdenados.findIndex((passo) => passo.id === state.arrastandoId);
+          const destinoIndice = state.passosOrdenados.findIndex((passo) => passo.id === destinoId);
+          const [passoMovido] = state.passosOrdenados.splice(origemIndice, 1);
+          state.passosOrdenados.splice(destinoIndice, 0, passoMovido);
+          renderizarDragAndDrop();
+        });
+      });
+    }
+
+    function validarOrdemPassos() {
+      const acertou = state.passosOrdenados.every((passo, indice) => passo.id === gramSteps[indice].id);
+      registrarResposta(acertou);
+
+      const feedback = document.getElementById("drag-feedback");
+      const checkButton = document.getElementById("check-drag");
+      const nextButton = document.getElementById("next-drag");
+      const ordemCorreta = gramSteps.map((passo, indice) => `${indice + 1}. ${passo.icon} ${passo.texto}`).join("<br>");
+
+      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
+      feedback.innerHTML = acertou
+        ? "<strong>✅ Excelente!</strong> Você organizou corretamente todas as etapas da coloração de Gram."
+        : `<strong>❌ Ordem incorreta.</strong> Revise a sequência correta:<br>${ordemCorreta}`;
+
+      checkButton.disabled = true;
+      document.querySelectorAll(".step-item").forEach((item) => item.setAttribute("draggable", "false"));
+      nextButton.classList.remove("d-none");
+    }
+
+    function renderizarMultiplaEscolha(desafio) {
+      challengeContainer.innerHTML = `
+        <div class="d-flex flex-column gap-4">
+          <div>
+            <span class="badge rounded-pill text-bg-light text-dark mb-3">Quiz • Múltipla escolha</span>
+            <h2 class="h3 fw-bold mb-2">${desafio.pergunta}</h2>
+            <p class="text-muted mb-0">Selecione a melhor resposta para ganhar pontos.</p>
+          </div>
+          <div id="mcq-options" class="d-grid gap-3">
+            ${desafio.opcoes.map((opcao, indice) => `
+              <button class="option-btn fw-medium" data-indice="${indice}">
+                <span class="fw-bold me-2">${String.fromCharCode(65 + indice)}.</span>${opcao}
+              </button>
+            `).join("")}
+          </div>
+          <div id="mcq-feedback" class="d-none"></div>
+          <div>
+            <button id="next-mcq" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll(".option-btn").forEach((button) => {
+        button.addEventListener("click", () => validarMultiplaEscolha(desafio, Number(button.dataset.indice)));
+      });
+      document.getElementById("next-mcq").addEventListener("click", avancarDesafio);
+    }
+
+    function validarMultiplaEscolha(desafio, respostaSelecionada) {
+      const botoes = Array.from(document.querySelectorAll(".option-btn"));
+      if (botoes.every((botao) => botao.disabled)) {
+        return;
+      }
+
+      const acertou = respostaSelecionada === desafio.respostaCorreta;
+      registrarResposta(acertou);
+
+      botoes.forEach((botao) => {
+        const indice = Number(botao.dataset.indice);
+        botao.disabled = true;
+        if (indice === desafio.respostaCorreta) {
+          botao.classList.add("correct");
+        } else if (indice === respostaSelecionada) {
+          botao.classList.add("incorrect");
+        }
+      });
+
+      const feedback = document.getElementById("mcq-feedback");
+      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
+      feedback.innerHTML = `
+        <strong>${acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta."}</strong>
+        <div class="mt-2">${desafio.explicacao}</div>
+      `;
+
+      document.getElementById("next-mcq").classList.remove("d-none");
+    }
+
+    function renderizarVerdadeiroFalso(desafio) {
+      challengeContainer.innerHTML = `
+        <div class="d-flex flex-column gap-4">
+          <div>
+            <span class="badge rounded-pill text-bg-light text-dark mb-3">Quiz • Verdadeiro ou Falso</span>
+            <h2 class="h3 fw-bold mb-2">${desafio.afirmacao}</h2>
+            <p class="text-muted mb-0">Escolha verdadeiro ou falso para seguir.</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <button class="tf-btn fw-semibold h-100" data-resposta="true">✅ Verdadeiro</button>
+            </div>
+            <div class="col-md-6">
+              <button class="tf-btn fw-semibold h-100" data-resposta="false">❌ Falso</button>
+            </div>
+          </div>
+          <div id="tf-feedback" class="d-none"></div>
+          <div>
+            <button id="next-tf" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll(".tf-btn").forEach((button) => {
+        button.addEventListener("click", () => validarVerdadeiroFalso(desafio, button.dataset.resposta === "true"));
+      });
+      document.getElementById("next-tf").addEventListener("click", avancarDesafio);
+    }
+
+    function validarVerdadeiroFalso(desafio, respostaSelecionada) {
+      const botoes = Array.from(document.querySelectorAll(".tf-btn"));
+      if (botoes.every((botao) => botao.disabled)) {
+        return;
+      }
+
+      const acertou = respostaSelecionada === desafio.resposta;
+      registrarResposta(acertou);
+
+      botoes.forEach((botao) => {
+        const respostaBotao = botao.dataset.resposta === "true";
+        botao.disabled = true;
+        if (respostaBotao === desafio.resposta) {
+          botao.classList.add("correct");
+        } else if (respostaBotao === respostaSelecionada) {
+          botao.classList.add("incorrect");
+        }
+      });
+
+      const feedback = document.getElementById("tf-feedback");
+      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
+      feedback.innerHTML = `
+        <strong>${acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez."}</strong>
+        <div class="mt-2">${desafio.explicacao}</div>
+      `;
+
+      document.getElementById("next-tf").classList.remove("d-none");
+    }
+
+    function renderizarTelaFinal() {
+      startScreen.classList.add("d-none");
+      gameScreen.classList.add("d-none");
+      endScreen.classList.remove("d-none");
+
+      const pontuacaoMaxima = state.desafios.length * 10;
+      const desempenho = pontuacaoMaxima > 0 ? Math.max(0, state.pontuacao) / pontuacaoMaxima : 0;
+      const estrelas = desempenho >= 0.8 ? 3 : desempenho >= 0.5 ? 2 : 1;
+
+      finalScore.textContent = `${state.pontuacao} pts`;
+      finalStarsText.textContent = `${"⭐".repeat(estrelas)}${"☆".repeat(3 - estrelas)}`;
+      finalStars.innerHTML = Array.from({ length: 3 }, (_, indice) => `
+        <span class="star ${indice < estrelas ? "filled" : ""}">${indice < estrelas ? "⭐" : "☆"}</span>
+      `).join("");
+    }
+
+    function iniciarJogo() {
+      state.desafios = buildChallenges();
+      state.desafioAtual = 0;
+      state.concluidos = 0;
+      state.pontuacao = 0;
+      state.passosOrdenados = embaralhar(gramSteps);
+      state.arrastandoId = null;
+
+      startScreen.classList.add("d-none");
+      endScreen.classList.add("d-none");
+      gameScreen.classList.remove("d-none");
+
+      atualizarPainel();
+      renderizarDesafio();
+    }
+
+    document.getElementById("start-button").addEventListener("click", iniciarJogo);
+    document.getElementById("restart-button").addEventListener("click", iniciarJogo);
+  </script>
+</body>
+</html>
