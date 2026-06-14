@@ -650,7 +650,7 @@
             <strong>Dica:</strong> lembre-se da sequência clássica: fixação, coloração primária, mordente, descoloração, contracoloração e observação.
           </div>
           <ul id="step-list" class="step-list">${passosHtml}</ul>
-          <div id="drag-feedback" class="d-none" role="alert" aria-live="polite"></div>
+          <div id="drag-feedback" class="d-none" role="status"></div>
           <div class="d-flex flex-column flex-sm-row gap-2">
             <button id="check-drag" class="btn text-white fw-semibold" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">Validar ordem</button>
             <button id="next-drag" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
@@ -725,11 +725,8 @@
       checkButton.disabled = true;
       document.querySelectorAll(".step-item").forEach((item) => {
         item.setAttribute("draggable", "false");
-        item.setAttribute("aria-disabled", "true");
         item.style.cursor = "not-allowed";
         item.style.pointerEvents = "none";
-        const labelBase = item.getAttribute("aria-label") || "Etapa";
-        item.setAttribute("aria-label", `${labelBase}, reordenação desativada após validação`);
       });
       nextButton.classList.remove("d-none");
     }
@@ -749,7 +746,7 @@
               </button>
             `).join("")}
           </div>
-          <div id="mcq-feedback" class="d-none" role="alert" aria-live="polite"></div>
+          <div id="mcq-feedback" class="d-none" role="status"></div>
           <div>
             <button id="next-mcq" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
           </div>
@@ -807,7 +804,7 @@
               <button class="tf-btn fw-semibold h-100" data-resposta="false">❌ Falso</button>
             </div>
           </div>
-          <div id="tf-feedback" class="d-none" role="alert" aria-live="polite"></div>
+          <div id="tf-feedback" class="d-none" role="status"></div>
           <div>
             <button id="next-tf" class="btn btn-outline-secondary fw-semibold d-none">Próximo desafio</button>
           </div>
@@ -855,7 +852,7 @@
       endScreen.classList.remove("d-none");
 
       const pontuacaoMaxima = state.desafios.length * PONTOS_ACERTO;
-      const desempenho = pontuacaoMaxima > 0 ? Math.max(0, state.pontuacao) / pontuacaoMaxima : 0;
+      const desempenho = pontuacaoMaxima > 0 ? state.pontuacao / pontuacaoMaxima : 0;
       const estrelas = desempenho >= 0.8 ? 3 : desempenho >= 0.5 ? 2 : 1;
 
       finalScore.textContent = `${state.pontuacao} pts`;
