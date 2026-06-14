@@ -826,7 +826,15 @@
     }
 
     function emailValido(valor) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizarEmail(valor));
+      const email = normalizarEmail(valor);
+      if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email)) {
+        return false;
+      }
+
+      const [, dominio = ""] = email.split("@");
+      return !dominio.startsWith(".")
+        && !dominio.endsWith(".")
+        && !dominio.includes("..");
     }
 
     function definirErroEmail(mensagem = "") {
@@ -844,6 +852,10 @@
         "⚠️ E-mail inválido",
         mensagem
       );
+    }
+
+    function limparErroEmail() {
+      definirErroEmail("");
     }
 
     function registrarResposta(resposta) {
@@ -901,7 +913,7 @@
       endScreen.classList.add("d-none");
       startScreen.classList.remove("d-none");
       emailInput.value = state.emailParticipante;
-      definirErroEmail("");
+      limparErroEmail();
       emailInput.focus();
     }
 
@@ -1426,13 +1438,13 @@
       }
 
       emailInput.value = emailNormalizado;
-      definirErroEmail("");
+      limparErroEmail();
       iniciarJogo(emailNormalizado);
     });
 
     emailInput.addEventListener("input", () => {
       if (emailInput.classList.contains("input-error")) {
-        definirErroEmail("");
+        limparErroEmail();
       }
     });
 
