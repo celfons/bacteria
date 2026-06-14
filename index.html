@@ -817,7 +817,7 @@
         pontuacao: state.pontuacao,
         concluidos: state.concluidos,
         totalDesafios: state.desafios.length,
-        respostas: state.respostas.map((resposta) => ({ ...resposta }))
+        respostas: [...state.respostas]
       };
     }
 
@@ -865,6 +865,7 @@
         || typeof resposta.tipo !== "string"
         || typeof resposta.acertou !== "boolean"
       ) {
+        console.warn("Resposta inválida ignorada.", resposta);
         return;
       }
 
@@ -1226,7 +1227,7 @@
         desafioId: "drag-gram-order",
         tipo: "drag",
         acertou,
-        respostaSelecionada: state.passosNaOrdem.map((passo) => passo?.texto || null),
+        respostaSelecionada: state.passosNaOrdem.map((passo) => passo?.texto ?? null),
         respostaCorreta: gramSteps.map((passo) => passo.texto)
       });
 
