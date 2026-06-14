@@ -270,6 +270,49 @@
       color: #fff;
     }
 
+    .hero-form {
+      max-width: 28rem;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .hero-form label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-form input {
+      width: 100%;
+      border: 2px solid transparent;
+      border-radius: 1rem;
+      padding: 0.95rem 1rem;
+      font: inherit;
+      color: #212529;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+
+    .hero-form input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    }
+
+    .hero-form input.input-error {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.18);
+    }
+
+    .hero-form small {
+      display: block;
+      margin-top: 0.5rem;
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    .hero-form .feedback-box {
+      margin-top: 1rem;
+    }
+
     .hero-badge,
     .challenge-badge {
       display: inline-flex;
@@ -523,6 +566,7 @@
     .flex-shrink-0 { flex-shrink: 0 !important; }
     .h-100 { height: 100% !important; }
     .me-2 { margin-right: 0.5rem !important; }
+    .mt-3 { margin-top: 1rem !important; }
     .g-3 { gap: 1rem !important; }
 
     @media (min-width: 576px) {
@@ -540,7 +584,22 @@
           <p class="lead mb-4">
             Organize as etapas, responda ao quiz e teste seus conhecimentos com verdadeiro ou falso.
           </p>
-          <button id="start-button" class="btn btn-light btn-lg px-4 fw-semibold">Iniciar</button>
+          <form id="start-form" class="hero-form" novalidate>
+            <label for="email-input">Informe seu e-mail para iniciar o questionário</label>
+            <input
+              id="email-input"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="voce@exemplo.com"
+              required
+              aria-describedby="email-help start-feedback"
+            />
+            <small id="email-help">Use um e-mail válido para vincular as respostas a um futuro registro em banco de dados.</small>
+            <div id="start-feedback" class="d-none" role="status" aria-live="polite" aria-atomic="true"></div>
+            <button id="start-button" type="submit" class="btn btn-light btn-lg px-4 fw-semibold mt-3">Iniciar</button>
+          </form>
         </div>
       </section>
 
@@ -588,6 +647,8 @@
             <div class="row g-3 justify-content-center mb-4">
               <div class="col-md-5">
                 <div class="score-pill">
+                  <small id="final-email-label" class="text-muted d-block">Participante</small>
+                  <strong id="final-email" class="fs-6 text-dark d-block mb-2">—</strong>
                   <small class="text-muted d-block">Pontuação total</small>
                   <strong id="final-score" class="fs-2 text-dark">0 pts</strong>
                 </div>
@@ -666,14 +727,18 @@
     const progressLabel = document.getElementById("progress-label");
     const progressPercent = document.getElementById("progress-percent");
     const progressBar = document.getElementById("progress-bar");
+    const startForm = document.getElementById("start-form");
+    const emailInput = document.getElementById("email-input");
+    const startFeedback = document.getElementById("start-feedback");
     const finalScore = document.getElementById("final-score");
     const finalStars = document.getElementById("final-stars");
     const finalStarsText = document.getElementById("final-stars-text");
+    const finalEmail = document.getElementById("final-email");
 
     const buildChallenges = () => ([
-      { tipo: "drag" },
-      ...questoesMultiplaEscolha.map((questao, indice) => ({ tipo: "mcq", indice, ...questao })),
-      ...questoesVerdadeiroFalso.map((questao, indice) => ({ tipo: "vf", indice, ...questao }))
+      { id: "drag-gram-order", tipo: "drag" },
+      ...questoesMultiplaEscolha.map((questao, indice) => ({ id: `mcq-${indice + 1}`, tipo: "mcq", indice, ...questao })),
+      ...questoesVerdadeiroFalso.map((questao, indice) => ({ id: `vf-${indice + 1}`, tipo: "vf", indice, ...questao }))
     ]);
 
     const state = {
@@ -681,6 +746,11 @@
       desafioAtual: 0,
       concluidos: 0,
       pontuacao: 0,
+      emailParticipante: "",
+      iniciadoEm: null,
+      finalizadoEm: null,
+      respostas: [],
+      payloadPersistencia: null,
       passosDisponiveis: [],
       passosNaOrdem: [],
       arrastandoId: null,
@@ -734,6 +804,78 @@
       }
     }
 
+    function limparFeedback(feedback) {
+      feedback.className = "d-none";
+      feedback.replaceChildren();
+    }
+
+    function atualizarPayloadPersistencia() {
+      state.payloadPersistencia = {
+        email: state.emailParticipante,
+        iniciadoEm: state.iniciadoEm,
+        finalizadoEm: state.finalizadoEm,
+        pontuacao: state.pontuacao,
+        concluidos: state.concluidos,
+        totalDesafios: state.desafios.length,
+        respostas: [...state.respostas]
+      };
+    }
+
+    function normalizarEmail(valor) {
+      return String(valor || "").trim().toLowerCase();
+    }
+
+    function emailValido(valor) {
+      const email = normalizarEmail(valor);
+      if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
+        return false;
+      }
+
+      const [, dominio = ""] = email.split("@");
+      return !dominio.startsWith(".")
+        && !dominio.endsWith(".")
+        && !dominio.includes("..");
+    }
+
+    function definirErroEmail(mensagem = "") {
+      emailInput.classList.toggle("input-error", Boolean(mensagem));
+      emailInput.setAttribute("aria-invalid", mensagem ? "true" : "false");
+
+      if (!mensagem) {
+        limparFeedback(startFeedback);
+        return;
+      }
+
+      exibirFeedback(
+        startFeedback,
+        "error",
+        "⚠️ E-mail inválido",
+        mensagem
+      );
+    }
+
+    function limparErroEmail() {
+      definirErroEmail("");
+    }
+
+    function registrarResposta(resposta) {
+      if (
+        !resposta
+        || typeof resposta.desafioId !== "string"
+        || typeof resposta.tipo !== "string"
+        || typeof resposta.acertou !== "boolean"
+      ) {
+        console.warn("Resposta inválida ignorada.", resposta);
+        return;
+      }
+
+      state.respostas.push({
+        ...resposta,
+        respondidoEm: new Date().toISOString()
+      });
+      atualizarPayloadPersistencia();
+    }
+
     function atualizarPainel() {
       const total = state.desafios.length;
       const percentual = total ? Math.round((state.concluidos / total) * 100) : 0;
@@ -744,10 +886,11 @@
       progressBar.setAttribute("aria-valuenow", String(percentual));
     }
 
-    function registrarResposta(acertou) {
+    function registrarPontuacao(acertou) {
       state.pontuacao += acertou ? PONTOS_ACERTO : PONTOS_ERRO;
       state.concluidos += 1;
       atualizarPainel();
+      atualizarPayloadPersistencia();
     }
 
     function renderizarDesafio() {
@@ -773,6 +916,15 @@
     function avancarDesafio() {
       state.desafioAtual += 1;
       renderizarDesafio();
+    }
+
+    function mostrarTelaInicial() {
+      gameScreen.classList.add("d-none");
+      endScreen.classList.add("d-none");
+      startScreen.classList.remove("d-none");
+      emailInput.value = state.emailParticipante;
+      limparErroEmail();
+      emailInput.focus();
     }
 
     function renderizarDragAndDrop() {
@@ -1070,7 +1222,14 @@
       }
 
       const acertou = state.passosNaOrdem.every((passo, indice) => passo.id === gramSteps[indice].id);
-      registrarResposta(acertou);
+      registrarPontuacao(acertou);
+      registrarResposta({
+        desafioId: "drag-gram-order",
+        tipo: "drag",
+        acertou,
+        respostaSelecionada: state.passosNaOrdem.map((passo) => passo?.texto ?? null),
+        respostaCorreta: gramSteps.map((passo) => passo.texto)
+      });
 
       const ordemCorreta = gramSteps.map((passo) => `${passo.icon} ${passo.texto}`);
 
@@ -1134,7 +1293,17 @@
       }
 
       const acertou = respostaSelecionada === desafio.respostaCorreta;
-      registrarResposta(acertou);
+      registrarPontuacao(acertou);
+      registrarResposta({
+        desafioId: desafio.id,
+        tipo: desafio.tipo,
+        acertou,
+        pergunta: desafio.pergunta,
+        respostaSelecionada,
+        respostaSelecionadaTexto: desafio.opcoes[respostaSelecionada],
+        respostaCorreta: desafio.respostaCorreta,
+        respostaCorretaTexto: desafio.opcoes[desafio.respostaCorreta]
+      });
 
       botoes.forEach((botao) => {
         const indice = Number(botao.dataset.indice);
@@ -1193,7 +1362,15 @@
       }
 
       const acertou = respostaSelecionada === desafio.resposta;
-      registrarResposta(acertou);
+      registrarPontuacao(acertou);
+      registrarResposta({
+        desafioId: desafio.id,
+        tipo: desafio.tipo,
+        acertou,
+        afirmacao: desafio.afirmacao,
+        respostaSelecionada,
+        respostaCorreta: desafio.resposta
+      });
 
       botoes.forEach((botao) => {
         const respostaBotao = botao.dataset.resposta === "true";
@@ -1220,11 +1397,14 @@
       startScreen.classList.add("d-none");
       gameScreen.classList.add("d-none");
       endScreen.classList.remove("d-none");
+      state.finalizadoEm = new Date().toISOString();
+      atualizarPayloadPersistencia();
 
       const pontuacaoMaxima = state.desafios.length * PONTOS_ACERTO;
       const desempenho = pontuacaoMaxima > 0 ? state.pontuacao / pontuacaoMaxima : 0;
       const estrelas = desempenho >= 0.8 ? 3 : desempenho >= 0.5 ? 2 : 1;
 
+      finalEmail.textContent = state.emailParticipante || "—";
       finalScore.textContent = `${state.pontuacao} pts`;
       finalStarsText.textContent = `${"⭐".repeat(estrelas)}${"☆".repeat(3 - estrelas)}`;
       finalStars.innerHTML = Array.from({ length: 3 }, (_, indice) => `
@@ -1232,11 +1412,16 @@
       `).join("");
     }
 
-    function iniciarJogo() {
+    function iniciarJogo(email) {
       state.desafios = buildChallenges();
       state.desafioAtual = 0;
       state.concluidos = 0;
       state.pontuacao = 0;
+      state.emailParticipante = normalizarEmail(email);
+      state.iniciadoEm = new Date().toISOString();
+      state.finalizadoEm = null;
+      state.respostas = [];
+      state.payloadPersistencia = null;
       state.passosDisponiveis = embaralhar(gramSteps);
       state.passosNaOrdem = new Array(gramSteps.length).fill(null);
       state.arrastandoId = null;
@@ -1247,12 +1432,33 @@
       endScreen.classList.add("d-none");
       gameScreen.classList.remove("d-none");
 
+      atualizarPayloadPersistencia();
       atualizarPainel();
       renderizarDesafio();
     }
 
-    document.getElementById("start-button").addEventListener("click", iniciarJogo);
-    document.getElementById("restart-button").addEventListener("click", iniciarJogo);
+    startForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const emailNormalizado = normalizarEmail(emailInput.value);
+
+      if (!emailValido(emailNormalizado)) {
+        definirErroEmail("Informe um e-mail válido para liberar o questionário e relacionar suas respostas ao futuro cadastro.");
+        emailInput.focus();
+        return;
+      }
+
+      emailInput.value = emailNormalizado;
+      limparErroEmail();
+      iniciarJogo(emailNormalizado);
+    });
+
+    emailInput.addEventListener("input", () => {
+      if (emailInput.classList.contains("input-error")) {
+        limparErroEmail();
+      }
+    });
+
+    document.getElementById("restart-button").addEventListener("click", mostrarTelaInicial);
   </script>
 </body>
 </html>
