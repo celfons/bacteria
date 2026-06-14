@@ -628,7 +628,7 @@
 
     function renderizarDragAndDrop() {
       const passosHtml = state.passosOrdenados.map((passo, indice) => `
-        <li class="step-item" draggable="true" data-id="${passo.id}" data-base-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}" aria-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}">
+        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}">
           <div class="d-flex gap-3 align-items-start">
             <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
             <div>
@@ -726,7 +726,9 @@
       document.querySelectorAll(".step-item").forEach((item) => {
         item.setAttribute("draggable", "false");
         item.setAttribute("aria-disabled", "true");
-        const labelBase = item.dataset.baseLabel || "Etapa";
+        item.style.cursor = "not-allowed";
+        item.style.pointerEvents = "none";
+        const labelBase = item.getAttribute("aria-label") || "Etapa";
         item.setAttribute("aria-label", `${labelBase}, reordenação desativada após validação`);
       });
       nextButton.classList.remove("d-none");
