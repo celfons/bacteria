@@ -537,6 +537,9 @@
       }
     ];
 
+    const PONTOS_ACERTO = 10;
+    const PONTOS_ERRO = -5;
+
     const startScreen = document.getElementById("start-screen");
     const gameScreen = document.getElementById("game-screen");
     const endScreen = document.getElementById("end-screen");
@@ -584,7 +587,7 @@
     }
 
     function registrarResposta(acertou) {
-      state.pontuacao += acertou ? 10 : -5;
+      state.pontuacao += acertou ? PONTOS_ACERTO : PONTOS_ERRO;
       state.concluidos += 1;
       atualizarPainel();
     }
@@ -616,7 +619,7 @@
 
     function renderizarDragAndDrop() {
       const passosHtml = state.passosOrdenados.map((passo, indice) => `
-        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}">
+        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}: ${passo.texto}">
           <div class="d-flex gap-3 align-items-start">
             <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
             <div>
@@ -712,7 +715,8 @@
       document.querySelectorAll(".step-item").forEach((item) => {
         item.setAttribute("draggable", "false");
         item.setAttribute("aria-disabled", "true");
-        item.setAttribute("aria-label", `${item.getAttribute("aria-label")}, reordenação desativada após validação`);
+        const labelBase = (item.getAttribute("aria-label") || "Etapa").split(",")[0];
+        item.setAttribute("aria-label", `${labelBase}, reordenação desativada após validação`);
       });
       nextButton.classList.remove("d-none");
     }
@@ -837,7 +841,7 @@
       gameScreen.classList.add("d-none");
       endScreen.classList.remove("d-none");
 
-      const pontuacaoMaxima = state.desafios.length * 10;
+      const pontuacaoMaxima = state.desafios.length * PONTOS_ACERTO;
       const desempenho = pontuacaoMaxima > 0 ? Math.max(0, state.pontuacao) / pontuacaoMaxima : 0;
       const estrelas = desempenho >= 0.8 ? 3 : desempenho >= 0.5 ? 2 : 1;
 
