@@ -449,7 +449,7 @@
                   <small id="progress-percent" class="fw-semibold text-dark">0%</small>
                 </div>
                 <div class="progress">
-                  <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                  <div id="progress-bar" class="progress-bar" role="progressbar" aria-label="Progresso do desafio" style="width: 0%" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
                 </div>
               </div>
             </div>
@@ -576,6 +576,15 @@
       return copia;
     }
 
+    function escaparHtml(valor) {
+      return String(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
     function atualizarPainel() {
       const total = state.desafios.length;
       const percentual = total ? Math.round((state.concluidos / total) * 100) : 0;
@@ -619,12 +628,12 @@
 
     function renderizarDragAndDrop() {
       const passosHtml = state.passosOrdenados.map((passo, indice) => `
-        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}: ${passo.texto}">
+        <li class="step-item" draggable="true" data-id="${passo.id}" data-base-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}" aria-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}">
           <div class="d-flex gap-3 align-items-start">
             <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
             <div>
               <div class="fw-bold text-dark">Etapa ${indice + 1}</div>
-              <div>${passo.texto}</div>
+              <div>${escaparHtml(passo.texto)}</div>
             </div>
           </div>
         </li>
@@ -704,7 +713,9 @@
       const feedback = document.getElementById("drag-feedback");
       const checkButton = document.getElementById("check-drag");
       const nextButton = document.getElementById("next-drag");
-      const ordemCorreta = gramSteps.map((passo, indice) => `${indice + 1}. ${passo.icon} ${passo.texto}`).join("<br>");
+      const ordemCorreta = gramSteps
+        .map((passo, indice) => `${indice + 1}. ${passo.icon} ${escaparHtml(passo.texto)}`)
+        .join("<br>");
 
       feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
       feedback.innerHTML = acertou
@@ -715,7 +726,7 @@
       document.querySelectorAll(".step-item").forEach((item) => {
         item.setAttribute("draggable", "false");
         item.setAttribute("aria-disabled", "true");
-        const labelBase = (item.getAttribute("aria-label") || "Etapa").split(",")[0];
+        const labelBase = item.dataset.baseLabel || "Etapa";
         item.setAttribute("aria-label", `${labelBase}, reordenação desativada após validação`);
       });
       nextButton.classList.remove("d-none");
@@ -726,13 +737,13 @@
         <div class="d-flex flex-column gap-4">
           <div>
             <span class="badge rounded-pill text-bg-light text-dark mb-3">Quiz • Múltipla escolha</span>
-            <h2 class="h3 fw-bold mb-2">${desafio.pergunta}</h2>
+            <h2 class="h3 fw-bold mb-2">${escaparHtml(desafio.pergunta)}</h2>
             <p class="text-muted mb-0">Selecione a melhor resposta para ganhar pontos.</p>
           </div>
           <div id="mcq-options" class="d-grid gap-3">
             ${desafio.opcoes.map((opcao, indice) => `
               <button class="option-btn fw-medium" data-indice="${indice}">
-                <span class="fw-bold me-2">${String.fromCharCode(65 + indice)}.</span>${opcao}
+                <span class="fw-bold me-2">${String.fromCharCode(65 + indice)}.</span>${escaparHtml(opcao)}
               </button>
             `).join("")}
           </div>
@@ -772,7 +783,7 @@
       feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
       feedback.innerHTML = `
         <strong>${acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta."}</strong>
-        <div class="mt-2">${desafio.explicacao}</div>
+        <div class="mt-2">${escaparHtml(desafio.explicacao)}</div>
       `;
 
       document.getElementById("next-mcq").classList.remove("d-none");
@@ -783,7 +794,7 @@
         <div class="d-flex flex-column gap-4">
           <div>
             <span class="badge rounded-pill text-bg-light text-dark mb-3">Quiz • Verdadeiro ou Falso</span>
-            <h2 class="h3 fw-bold mb-2">${desafio.afirmacao}</h2>
+            <h2 class="h3 fw-bold mb-2">${escaparHtml(desafio.afirmacao)}</h2>
             <p class="text-muted mb-0">Escolha verdadeiro ou falso para seguir.</p>
           </div>
           <div class="row g-3">
@@ -830,7 +841,7 @@
       feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
       feedback.innerHTML = `
         <strong>${acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez."}</strong>
-        <div class="mt-2">${desafio.explicacao}</div>
+        <div class="mt-2">${escaparHtml(desafio.explicacao)}</div>
       `;
 
       document.getElementById("next-tf").classList.remove("d-none");
