@@ -410,6 +410,105 @@
       border-radius: 1rem;
     }
 
+    .drag-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    @media (max-width: 575px) {
+      .drag-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .drag-col {
+      background: rgba(111, 66, 193, 0.03);
+      border: 1px solid rgba(111, 66, 193, 0.12);
+      border-radius: 1rem;
+      padding: 1rem;
+      min-height: 22rem;
+    }
+
+    .drag-col-header {
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gram-purple);
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .drag-col-header span {
+      display: inline-block;
+      background: rgba(111, 66, 193, 0.1);
+      border-radius: 999px;
+      padding: 0.25rem 0.85rem;
+    }
+
+    .drop-slot.empty {
+      border: 2px dashed rgba(111, 66, 193, 0.28);
+      border-radius: 1rem;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #adb5bd;
+      background: rgba(111, 66, 193, 0.02);
+      transition: border-color 0.2s ease, background 0.2s ease;
+      min-height: 3.5rem;
+      cursor: default;
+    }
+
+    .drop-slot.empty.drag-over {
+      border-color: rgba(214, 51, 132, 0.55);
+      background: rgba(214, 51, 132, 0.06);
+    }
+
+    .slot-number {
+      display: inline-grid;
+      place-items: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      min-width: 1.75rem;
+      border-radius: 50%;
+      background: rgba(111, 66, 193, 0.15);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gram-purple);
+    }
+
+    .slot-hint {
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .step-item.in-order {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .step-item.in-order .slot-number {
+      flex-shrink: 0;
+    }
+
+    .drag-over-zone {
+      outline: 2px dashed rgba(111, 66, 193, 0.4);
+      outline-offset: -2px;
+    }
+
+    .step-placeholder {
+      list-style: none;
+      color: #adb5bd;
+      text-align: center;
+      padding: 2rem 0.5rem;
+      font-style: italic;
+      font-size: 0.875rem;
+    }
+
     .d-block { display: block !important; }
     .flex-shrink-0 { flex-shrink: 0 !important; }
     .h-100 { height: 100% !important; }
@@ -572,8 +671,11 @@
       desafioAtual: 0,
       concluidos: 0,
       pontuacao: 0,
-      passosOrdenados: [],
-      arrastandoId: null
+      passosDisponiveis: [],
+      passosNaOrdem: [],
+      arrastandoId: null,
+      arrastandoOrigem: null,
+      arrastandoSlot: null
     };
 
     function embaralhar(lista) {
@@ -664,29 +766,55 @@
     }
 
     function renderizarDragAndDrop() {
-      const passosHtml = state.passosOrdenados.map((passo, indice) => `
-        <li class="step-item" draggable="true" data-id="${passo.id}" aria-label="Passo ${indice + 1}: ${escaparHtml(passo.texto)}">
-          <div class="d-flex gap-3 align-items-start">
-            <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
-            <div>
-              <div class="fw-bold text-dark">Etapa ${indice + 1}</div>
+      const sourceHtml = state.passosDisponiveis.length
+        ? state.passosDisponiveis.map((passo) => `
+            <li class="step-item" draggable="true" data-id="${passo.id}" data-origem="source" aria-label="${escaparHtml(passo.texto)}">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
+                <div>${escaparHtml(passo.texto)}</div>
+              </div>
+            </li>
+          `).join("")
+        : `<li class="step-placeholder">Todos os itens foram colocados na ordem ✔</li>`;
+
+      const orderHtml = state.passosNaOrdem.map((passo, indice) => {
+        if (passo) {
+          return `
+            <li class="step-item in-order" draggable="true" data-id="${passo.id}" data-origem="order" data-slot="${indice}" aria-label="Posição ${indice + 1}: ${escaparHtml(passo.texto)}">
+              <span class="slot-number">${indice + 1}</span>
+              <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
               <div>${escaparHtml(passo.texto)}</div>
-            </div>
-          </div>
-        </li>
-      `).join("");
+            </li>
+          `;
+        }
+        return `
+          <li class="drop-slot empty" data-slot="${indice}" aria-label="Posição ${indice + 1}: vazia">
+            <span class="slot-number">${indice + 1}</span>
+            <span class="slot-hint">Arraste aqui</span>
+          </li>
+        `;
+      }).join("");
 
       challengeContainer.innerHTML = `
         <div class="d-flex flex-column gap-4">
           <div>
             <span class="badge rounded-pill text-bg-light text-dark mb-3">Desafio 1 • Drag-and-drop</span>
             <h2 class="h3 fw-bold mb-2">Coloque as etapas da coloração de Gram na ordem correta</h2>
-            <p class="text-muted mb-0">Arraste os cartões para reorganizar o procedimento do início ao fim.</p>
+            <p class="text-muted mb-0">Arraste as etapas para a coluna da direita e organize-as do início ao fim.</p>
           </div>
           <div class="soft-note p-3">
             <strong>Dica:</strong> lembre-se da sequência clássica: fixação, coloração primária, mordente, descoloração, contracoloração e observação.
           </div>
-          <ul id="step-list" class="step-list">${passosHtml}</ul>
+          <div class="drag-columns">
+            <div class="drag-col">
+              <div class="drag-col-header"><span>Etapas disponíveis</span></div>
+              <ul id="step-source" class="step-list">${sourceHtml}</ul>
+            </div>
+            <div class="drag-col">
+              <div class="drag-col-header"><span>Coloque na ordem ↓</span></div>
+              <ol id="step-order" class="step-list">${orderHtml}</ol>
+            </div>
+          </div>
           <div id="drag-feedback" class="d-none" role="status" aria-live="polite" aria-atomic="true"></div>
           <div class="d-flex flex-column flex-sm-row gap-2">
             <button id="check-drag" class="btn text-white fw-semibold" style="background: linear-gradient(135deg, var(--gram-purple), var(--gram-pink));">Validar ordem</button>
@@ -701,55 +829,117 @@
     }
 
     function configurarEventosDrag() {
-      const stepList = document.getElementById("step-list");
-      const itens = Array.from(stepList.querySelectorAll(".step-item"));
+      const sourceList = document.getElementById("step-source");
+      const orderList = document.getElementById("step-order");
 
-      itens.forEach((item) => {
-        item.addEventListener("dragstart", (event) => {
-          state.arrastandoId = Number(event.currentTarget.dataset.id);
-          event.currentTarget.classList.add("dragging");
+      function limparDragOver() {
+        document.querySelectorAll(".drag-over, .drag-over-zone").forEach((el) => {
+          el.classList.remove("drag-over", "drag-over-zone");
         });
+      }
 
-        item.addEventListener("dragend", (event) => {
-          event.currentTarget.classList.remove("dragging");
-          state.arrastandoId = null;
-          itens.forEach((entry) => entry.classList.remove("drag-over"));
+      // Draggable source items
+      sourceList.querySelectorAll(".step-item").forEach((item) => {
+        item.addEventListener("dragstart", (e) => {
+          state.arrastandoId = Number(e.currentTarget.dataset.id);
+          state.arrastandoOrigem = "source";
+          state.arrastandoSlot = null;
+          e.currentTarget.classList.add("dragging");
         });
-
-        item.addEventListener("dragover", (event) => {
-          event.preventDefault();
-          event.currentTarget.classList.add("drag-over");
+        item.addEventListener("dragend", (e) => {
+          e.currentTarget.classList.remove("dragging");
+          limparDragOver();
         });
+      });
 
-        item.addEventListener("dragleave", (event) => {
-          event.currentTarget.classList.remove("drag-over");
+      // Draggable filled order slots
+      orderList.querySelectorAll(".step-item.in-order").forEach((item) => {
+        item.addEventListener("dragstart", (e) => {
+          state.arrastandoId = Number(e.currentTarget.dataset.id);
+          state.arrastandoOrigem = "order";
+          state.arrastandoSlot = Number(e.currentTarget.dataset.slot);
+          e.currentTarget.classList.add("dragging");
         });
+        item.addEventListener("dragend", (e) => {
+          e.currentTarget.classList.remove("dragging");
+          limparDragOver();
+        });
+      });
 
-        item.addEventListener("drop", (event) => {
-          event.preventDefault();
-          const destinoId = Number(event.currentTarget.dataset.id);
-          event.currentTarget.classList.remove("drag-over");
+      // Order list slots as drop targets (both empty and filled)
+      orderList.querySelectorAll("li").forEach((slot) => {
+        slot.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          slot.classList.add("drag-over");
+        });
+        slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
+        slot.addEventListener("drop", (e) => {
+          e.preventDefault();
+          slot.classList.remove("drag-over");
+          const destinoSlot = Number(slot.dataset.slot);
 
-          if (!state.arrastandoId || state.arrastandoId === destinoId) {
-            return;
+          if (state.arrastandoOrigem === "source") {
+            const passo = state.passosDisponiveis.find((p) => p.id === state.arrastandoId);
+            if (!passo) return;
+
+            const atual = state.passosNaOrdem[destinoSlot];
+            if (atual) {
+              state.passosDisponiveis.push(atual);
+            }
+
+            state.passosDisponiveis = state.passosDisponiveis.filter((p) => p.id !== state.arrastandoId);
+            state.passosNaOrdem[destinoSlot] = passo;
+          } else if (state.arrastandoOrigem === "order") {
+            if (state.arrastandoSlot === destinoSlot) return;
+            const temp = state.passosNaOrdem[destinoSlot];
+            state.passosNaOrdem[destinoSlot] = state.passosNaOrdem[state.arrastandoSlot];
+            state.passosNaOrdem[state.arrastandoSlot] = temp;
           }
 
-          const origemIndice = state.passosOrdenados.findIndex((passo) => passo.id === state.arrastandoId);
-          const destinoIndice = state.passosOrdenados.findIndex((passo) => passo.id === destinoId);
-          const [passoMovido] = state.passosOrdenados.splice(origemIndice, 1);
-          state.passosOrdenados.splice(destinoIndice, 0, passoMovido);
           renderizarDragAndDrop();
         });
+      });
+
+      // Source list as drop target (to return items from order back to available)
+      sourceList.addEventListener("dragover", (e) => {
+        if (state.arrastandoOrigem === "order") {
+          e.preventDefault();
+          sourceList.classList.add("drag-over-zone");
+        }
+      });
+      sourceList.addEventListener("dragleave", () => sourceList.classList.remove("drag-over-zone"));
+      sourceList.addEventListener("drop", (e) => {
+        e.preventDefault();
+        sourceList.classList.remove("drag-over-zone");
+        if (state.arrastandoOrigem === "order" && state.arrastandoSlot !== null) {
+          const passo = state.passosNaOrdem[state.arrastandoSlot];
+          if (passo) {
+            state.passosNaOrdem[state.arrastandoSlot] = null;
+            state.passosDisponiveis.push(passo);
+            renderizarDragAndDrop();
+          }
+        }
       });
     }
 
     function validarOrdemPassos() {
-      const acertou = state.passosOrdenados.every((passo, indice) => passo.id === gramSteps[indice].id);
-      registrarResposta(acertou);
-
       const feedback = document.getElementById("drag-feedback");
       const checkButton = document.getElementById("check-drag");
       const nextButton = document.getElementById("next-drag");
+
+      if (state.passosNaOrdem.some((p) => p === null)) {
+        exibirFeedback(
+          feedback,
+          "error",
+          "⚠️ Atenção",
+          "Coloque todas as etapas na coluna "Coloque na ordem" antes de validar."
+        );
+        return;
+      }
+
+      const acertou = state.passosNaOrdem.every((passo, indice) => passo.id === gramSteps[indice].id);
+      registrarResposta(acertou);
+
       const ordemCorreta = gramSteps.map((passo) => `${passo.icon} ${passo.texto}`);
 
       if (acertou) {
@@ -770,7 +960,7 @@
       }
 
       checkButton.disabled = true;
-      document.querySelectorAll(".step-item").forEach((item) => {
+      document.querySelectorAll(".step-item, .drop-slot").forEach((item) => {
         item.setAttribute("draggable", "false");
         item.style.pointerEvents = "none";
       });
@@ -915,8 +1105,11 @@
       state.desafioAtual = 0;
       state.concluidos = 0;
       state.pontuacao = 0;
-      state.passosOrdenados = embaralhar(gramSteps);
+      state.passosDisponiveis = embaralhar(gramSteps);
+      state.passosNaOrdem = new Array(gramSteps.length).fill(null);
       state.arrastandoId = null;
+      state.arrastandoOrigem = null;
+      state.arrastandoSlot = null;
 
       startScreen.classList.add("d-none");
       endScreen.classList.add("d-none");
