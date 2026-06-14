@@ -585,6 +585,34 @@
         .replaceAll("'", "&#39;");
     }
 
+    function exibirFeedback(feedback, tipo, titulo, descricao = "", itens = []) {
+      feedback.className = `feedback-box ${tipo}`;
+      feedback.classList.remove("d-none");
+      feedback.replaceChildren();
+
+      const tituloEl = document.createElement("strong");
+      tituloEl.textContent = titulo;
+      feedback.appendChild(tituloEl);
+
+      if (descricao) {
+        const descricaoEl = document.createElement("div");
+        descricaoEl.className = "mt-2";
+        descricaoEl.textContent = descricao;
+        feedback.appendChild(descricaoEl);
+      }
+
+      if (itens.length) {
+        const lista = document.createElement("ol");
+        lista.className = "mt-2 mb-0";
+        itens.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          lista.appendChild(li);
+        });
+        feedback.appendChild(lista);
+      }
+    }
+
     function atualizarPainel() {
       const total = state.desafios.length;
       const percentual = total ? Math.round((state.concluidos / total) * 100) : 0;
@@ -713,19 +741,28 @@
       const feedback = document.getElementById("drag-feedback");
       const checkButton = document.getElementById("check-drag");
       const nextButton = document.getElementById("next-drag");
-      const ordemCorreta = gramSteps
-        .map((passo, indice) => `${indice + 1}. ${passo.icon} ${escaparHtml(passo.texto)}`)
-        .join("<br>");
+      const ordemCorreta = gramSteps.map((passo) => `${passo.icon} ${passo.texto}`);
 
-      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
-      feedback.innerHTML = acertou
-        ? "<strong>✅ Excelente!</strong> Você organizou corretamente todas as etapas da coloração de Gram."
-        : `<strong>❌ Ordem incorreta.</strong> Revise a sequência correta:<br>${ordemCorreta}`;
+      if (acertou) {
+        exibirFeedback(
+          feedback,
+          "success",
+          "✅ Excelente!",
+          "Você organizou corretamente todas as etapas da coloração de Gram."
+        );
+      } else {
+        exibirFeedback(
+          feedback,
+          "error",
+          "❌ Ordem incorreta.",
+          "Revise a sequência correta:",
+          ordemCorreta
+        );
+      }
 
       checkButton.disabled = true;
       document.querySelectorAll(".step-item").forEach((item) => {
         item.setAttribute("draggable", "false");
-        item.style.cursor = "not-allowed";
         item.style.pointerEvents = "none";
       });
       nextButton.classList.remove("d-none");
@@ -779,11 +816,12 @@
       });
 
       const feedback = document.getElementById("mcq-feedback");
-      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
-      feedback.innerHTML = `
-        <strong>${acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta."}</strong>
-        <div class="mt-2">${escaparHtml(desafio.explicacao)}</div>
-      `;
+      exibirFeedback(
+        feedback,
+        acertou ? "success" : "error",
+        acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta.",
+        desafio.explicacao
+      );
 
       document.getElementById("next-mcq").classList.remove("d-none");
     }
@@ -837,11 +875,12 @@
       });
 
       const feedback = document.getElementById("tf-feedback");
-      feedback.className = `feedback-box ${acertou ? "success" : "error"}`;
-      feedback.innerHTML = `
-        <strong>${acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez."}</strong>
-        <div class="mt-2">${escaparHtml(desafio.explicacao)}</div>
-      `;
+      exibirFeedback(
+        feedback,
+        acertou ? "success" : "error",
+        acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez.",
+        desafio.explicacao
+      );
 
       document.getElementById("next-tf").classList.remove("d-none");
     }
