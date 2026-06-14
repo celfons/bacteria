@@ -879,15 +879,15 @@
           const destinoSlot = Number(slot.dataset.slot);
 
           if (state.arrastandoOrigem === "source") {
-            const passo = state.passosDisponiveis.find((p) => p.id === state.arrastandoId);
-            if (!passo) return;
+            const origemIndice = state.passosDisponiveis.findIndex((p) => p.id === state.arrastandoId);
+            if (origemIndice === -1) return;
+            const [passo] = state.passosDisponiveis.splice(origemIndice, 1);
 
             const atual = state.passosNaOrdem[destinoSlot];
             if (atual) {
               state.passosDisponiveis.push(atual);
             }
 
-            state.passosDisponiveis = state.passosDisponiveis.filter((p) => p.id !== state.arrastandoId);
             state.passosNaOrdem[destinoSlot] = passo;
           } else if (state.arrastandoOrigem === "order") {
             if (state.arrastandoSlot === destinoSlot) return;
@@ -932,7 +932,7 @@
           feedback,
           "error",
           "⚠️ Atenção",
-          "Coloque todas as etapas na coluna "Coloque na ordem" antes de validar."
+          "Coloque todas as etapas na coluna \u201cColoque na ordem\u201d antes de validar."
         );
         return;
       }
