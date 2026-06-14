@@ -827,7 +827,7 @@
 
     function emailValido(valor) {
       const email = normalizarEmail(valor);
-      if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email)) {
+      if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
         return false;
       }
 
@@ -859,6 +859,15 @@
     }
 
     function registrarResposta(resposta) {
+      if (
+        !resposta
+        || typeof resposta.desafioId !== "string"
+        || typeof resposta.tipo !== "string"
+        || typeof resposta.acertou !== "boolean"
+      ) {
+        return;
+      }
+
       state.respostas.push({
         ...resposta,
         respondidoEm: new Date().toISOString()
