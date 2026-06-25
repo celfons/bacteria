@@ -686,16 +686,70 @@
     // { pergunta: "Qual etapa vem após o lugol?", opcoes: ["Cristal violeta", "Álcool-acetona", "Microscopia"], respostaCorreta: 1, explicacao: "Após o lugol, ocorre a descoloração com álcool-acetona." }
     const questoesMultiplaEscolha = [
       {
-        pergunta: "Qual reagente é usado como corante primário na coloração de Gram?",
-        opcoes: ["Safranina", "Cristal violeta", "Lugol", "Álcool-acetona"],
-        respostaCorreta: 1,
-        explicacao: "O cristal violeta é o primeiro corante aplicado e marca inicialmente todas as células."
+        pergunta: "Quem criou a coloração de Gram?",
+        opcoes: [
+          "Louis Pasteur",
+          "Robert Koch",
+          "Hans Christian Gram",
+          "Alexander Fleming"
+        ],
+        respostaCorreta: 2,
+        explicacao: "A técnica de coloração de Gram foi desenvolvida pelo médico dinamarquês Hans Christian Gram em 1884."
       },
       {
-        pergunta: "Qual etapa tem a função de descolorir as bactérias Gram-negativas?",
-        opcoes: ["Aplicar lugol", "Examinar ao microscópio", "Aplicar álcool-acetona", "Fixar pelo calor"],
+        pergunta: "Qual estrutura protege a bactéria e mantém sua forma?",
+        opcoes: [
+          "Citoplasma",
+          "DNA",
+          "Parede celular",
+          "Ribossomo"
+        ],
         respostaCorreta: 2,
-        explicacao: "O álcool-acetona remove o complexo corante das Gram-negativas, preparando a etapa de contraste."
+        explicacao: "A parede celular confere proteção, resistência e determina o formato característico da bactéria."
+      },
+      {
+        pergunta: "O peptidoglicano é:",
+        opcoes: [
+          "Um antibiótico",
+          "Um corante",
+          "O principal componente da parede celular bacteriana",
+          "Um tipo de bactéria"
+        ],
+        respostaCorreta: 2,
+        explicacao: "O peptidoglicano é o principal componente estrutural da parede celular das bactérias, especialmente das Gram-positivas."
+      },
+      {
+        pergunta: "Qual bactéria possui uma camada espessa de peptidoglicano?",
+        opcoes: [
+          "Gram negativa",
+          "Gram positiva",
+          "Ambas",
+          "Nenhuma"
+        ],
+        respostaCorreta: 1,
+        explicacao: "As bactérias Gram-positivas possuem uma parede celular rica em peptidoglicano, o que permite reter o cristal violeta."
+      },
+      {
+        pergunta: "Qual bactéria possui membrana externa?",
+        opcoes: [
+          "Gram positiva",
+          "Gram negativa",
+          "Ambas",
+          "Nenhuma"
+        ],
+        respostaCorreta: 1,
+        explicacao: "As bactérias Gram-negativas possuem uma membrana externa rica em lipopolissacarídeos (LPS), ausente nas Gram-positivas."
+      },
+      {
+        pergunta: "Qual etapa realmente diferencia as bactérias Gram-positivas das Gram-negativas?",
+        opcoes: [
+          "Cristal violeta",
+          "Lugol",
+          "Álcool/acetona",
+          "Safranina"
+        ],
+        respostaCorreta: 2,
+        explicacao: "O álcool/acetona é o agente descolorante que remove o cristal violeta das Gram-negativas, mas não das Gram-positivas."
       }
     ];
 
@@ -704,16 +758,16 @@
     // Exemplo:
     // { afirmacao: "A safranina pode ser usada como contracorante.", resposta: true, explicacao: "Ela colore as bactérias que perderam o cristal violeta." }
     const questoesVerdadeiroFalso = [
-      {
-        afirmacao: "Após o cristal violeta, a lâmina deve ser lavada com água.",
-        resposta: true,
-        explicacao: "A lavagem com H₂O remove o excesso do reagente antes da etapa seguinte."
-      },
-      {
-        afirmacao: "O microscópio é utilizado antes da aplicação da fucsina ou safranina.",
-        resposta: false,
-        explicacao: "A observação é a última etapa, feita somente após a contracoloração."
-      }
+      // {
+      //   afirmacao: "Após o cristal violeta, a lâmina deve ser lavada com água.",
+      //   resposta: true,
+      //   explicacao: "A lavagem com H₂O remove o excesso do reagente antes da etapa seguinte."
+      // },
+      // {
+      //   afirmacao: "O microscópio é utilizado antes da aplicação da fucsina ou safranina.",
+      //   resposta: false,
+      //   explicacao: "A observação é a última etapa, feita somente após a contracoloração."
+      // }
     ];
 
     const PONTOS_ACERTO = 10;
