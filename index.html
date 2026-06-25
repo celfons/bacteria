@@ -1210,25 +1210,12 @@
       function aoMoverTouch(e) {
         if (!touchClone) return;
 
-        if (state.arrastandoId !== null) {
-            e.preventDefault();
-        }
+        e.preventDefault();
       
         const touch = e.touches[0];
       
-        const limiteSuperior = 80;
-        const limiteInferior = window.innerHeight - 80;
-      
-        if (touch.clientY < limiteSuperior) {
-          window.scrollBy({ top: -10, behavior: "auto" });
-        }
-      
-        if (touch.clientY > limiteInferior) {
-          window.scrollBy({ top: 10, behavior: "auto" });
-        }
-      
-        touchClone.style.left = ⁠ ${touch.clientX - touchOffsetX}px ⁠;
-        touchClone.style.top = ⁠ ${touch.clientY - touchOffsetY}px ⁠;
+        touchClone.style.left = `${touch.clientX - touchOffsetX}px`;
+        touchClone.style.top = `${touch.clientY - touchOffsetY}px`;
       
         limparDragOver();
       
