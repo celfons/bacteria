@@ -1209,6 +1209,10 @@
 
       function aoMoverTouch(e) {
         if (!touchClone) return;
+
+        if (state.arrastandoId !== null) {
+            e.preventDefault();
+        }
       
         const touch = e.touches[0];
       
