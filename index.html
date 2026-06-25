@@ -347,7 +347,6 @@
       background: #fff;
       border-radius: 1.25rem;
       border: 1px solid rgba(111, 66, 193, 0.08);
-      
     }
 
     .step-list {
@@ -356,7 +355,6 @@
       margin: 0;
       display: grid;
       gap: 0.85rem;
-      
     }
 
     .step-item {
@@ -438,6 +436,7 @@
       border-radius: 50%;
       background: rgba(111, 66, 193, 0.1);
       font-size: 1.4rem;
+      touch-action: none; /* Indica ao navegador para não gerenciar gestos nativos aqui */
     }
 
     .star {
@@ -474,7 +473,6 @@
       border-radius: 1rem;
       padding: 1rem;
       min-height: 22rem;
-      
     }
 
     .drag-col-header {
@@ -683,10 +681,6 @@
       { id: 6, icon: "🔬", texto: "Examinar ao microscópio" }
     ];
 
-    // CADASTRO DE QUESTÕES DE MÚLTIPLA ESCOLHA:
-    // Adicione novas perguntas neste array usando a estrutura abaixo.
-    // Exemplo:
-    // { pergunta: "Qual etapa vem após o lugol?", opcoes: ["Cristal violeta", "Álcool-acetona", "Microscopia"], respostaCorreta: 1, explicacao: "Após o lugol, ocorre a descoloração com álcool-acetona." }
     const questoesMultiplaEscolha = [
       {
         pergunta: "Quem criou a coloração de Gram?",
@@ -756,22 +750,7 @@
       }
     ];
 
-    // CADASTRO DE QUESTÕES DE VERDADEIRO OU FALSO:
-    // Adicione novas afirmações neste array usando a estrutura abaixo.
-    // Exemplo:
-    // { afirmacao: "A safranina pode ser usada como contracorante.", resposta: true, explicacao: "Ela colore as bactérias que perderam o cristal violeta." }
-    const questoesVerdadeiroFalso = [
-      // {
-      //   afirmacao: "Após o cristal violeta, a lâmina deve ser lavada com água.",
-      //   resposta: true,
-      //   explicacao: "A lavagem com H₂O remove o excesso do reagente antes da etapa seguinte."
-      // },
-      // {
-      //   afirmacao: "O microscópio é utilizado antes da aplicação da fucsina ou safranina.",
-      //   resposta: false,
-      //   explicacao: "A observação é a última etapa, feita somente após a contracoloração."
-      // }
-    ];
+    const questoesVerdadeiroFalso = [];
 
     const PONTOS_ACERTO = 10;
     const PONTOS_ERRO = -5;
@@ -812,7 +791,8 @@
       passosNaOrdem: [],
       arrastandoId: null,
       arrastandoOrigem: null,
-      arrastandoSlot: null
+      arrastandoSlot: null,
+      houveMovimento: false
     };
 
     function embaralhar(lista) {
@@ -887,28 +867,20 @@
       if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
         return false;
       }
-
       const [, dominio = ""] = email.split("@");
-      return !dominio.startsWith(".")
-        && !dominio.endsWith(".")
-        && !dominio.includes("..");
+      return !dominio.startsWith(".") && !dominio.endsWith(".") && !dominio.includes("..");
     }
 
     function definirErroEmail(mensagem = "") {
       emailInput.classList.toggle("input-error", Boolean(mensagem));
-      emailInput.setAttribute("aria-invalid", mensagem ? "true" : "false");
+      emailInput.setAttribute("aria-invalid", message = mensagem ? "true" : "false");
 
       if (!mensagem) {
         limparFeedback(startFeedback);
         return;
       }
 
-      exibirFeedback(
-        startFeedback,
-        "error",
-        "⚠️ E-mail inválido",
-        mensagem
-      );
+      exibirFeedback(startFeedback, "error", "⚠️ E-mail inválido", mensagem);
     }
 
     function limparErroEmail() {
@@ -916,16 +888,10 @@
     }
 
     function registrarResposta(resposta) {
-      if (
-        !resposta
-        || typeof resposta.desafioId !== "string"
-        || typeof resposta.tipo !== "string"
-        || typeof resposta.acertou !== "boolean"
-      ) {
+      if (!resposta || typeof resposta.desafioId !== "string" || typeof resposta.tipo !== "string" || typeof resposta.acertou !== "boolean") {
         console.warn("Resposta inválida ignorada.", resposta);
         return;
       }
-
       state.respostas.push({
         ...resposta,
         respondidoEm: new Date().toISOString()
@@ -956,17 +922,14 @@
         renderizarTelaFinal();
         return;
       }
-
       if (desafio.tipo === "drag") {
         renderizarDragAndDrop();
         return;
       }
-
       if (desafio.tipo === "mcq") {
         renderizarMultiplaEscolha(desafio);
         return;
       }
-
       renderizarVerdadeiroFalso(desafio);
     }
 
@@ -990,7 +953,7 @@
             <li class="step-item" draggable="true" data-id="${passo.id}" data-origem="source" aria-label="${escaparHtml(passo.texto)}">
               <div class="d-flex gap-3 align-items-start">
                 <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
-                <div>${escaparHtml(passo.texto)}</div>
+                <div class="flex-fill pt-1 style-text-click">${escaparHtml(passo.texto)}</div>
               </div>
             </li>
           `).join("")
@@ -1002,7 +965,7 @@
             <li class="step-item in-order" draggable="true" data-id="${passo.id}" data-origem="order" data-slot="${indice}" aria-label="Posição ${indice + 1}: ${escaparHtml(passo.texto)}">
               <span class="slot-number">${indice + 1}</span>
               <span class="icon-bubble flex-shrink-0">${passo.icon}</span>
-              <div>${escaparHtml(passo.texto)}</div>
+              <div class="flex-fill pt-1 style-text-click">${escaparHtml(passo.texto)}</div>
             </li>
           `;
         }
@@ -1017,12 +980,12 @@
       challengeContainer.innerHTML = `
         <div class="d-flex flex-column gap-4">
           <div>
-            <span class="badge rounded-pill text-bg-light text-dark mb-3">Desafio 1 • Drag-and-drop</span>
+            <span class="badge rounded-pill text-bg-light text-dark mb-3">Desafio 1 • Ordenação</span>
             <h2 class="h3 fw-bold mb-2">Coloque as etapas da coloração de Gram na ordem correta</h2>
-            <p class="text-muted mb-0">Arraste as etapas para a coluna da direita e organize-as do início ao fim.</p>
+            <p class="text-muted mb-0">Organize a sequência ideal do início ao fim.</p>
           </div>
           <div class="soft-note p-3">
-            <strong>Dica:</strong> lembre-se da sequência clássica: fixação, coloração primária, mordente, descoloração, contracoloração e observação.
+            <strong>Dica mobile:</strong> Arraste segurando pelo <strong>círculo do ícone</strong> ou simplesmente <strong>toque no texto do item</strong> para movê-lo automaticamente de coluna!
           </div>
           <div class="drag-columns">
             <div class="drag-col">
@@ -1057,7 +1020,7 @@
         });
       }
 
-      // Draggable source items
+      // --- DESKTOP DRAG AND DROP ---
       sourceList.querySelectorAll(".step-item").forEach((item) => {
         item.addEventListener("dragstart", (e) => {
           state.arrastandoId = Number(e.currentTarget.dataset.id);
@@ -1071,7 +1034,6 @@
         });
       });
 
-      // Draggable filled order slots
       orderList.querySelectorAll(".step-item.in-order").forEach((item) => {
         item.addEventListener("dragstart", (e) => {
           state.arrastandoId = Number(e.currentTarget.dataset.id);
@@ -1085,7 +1047,6 @@
         });
       });
 
-      // Order list slots as drop targets (both empty and filled)
       orderList.querySelectorAll("li").forEach((slot) => {
         slot.addEventListener("dragover", (e) => {
           e.preventDefault();
@@ -1101,12 +1062,8 @@
             const origemIndice = state.passosDisponiveis.findIndex((p) => p.id === state.arrastandoId);
             if (origemIndice === -1) return;
             const [passo] = state.passosDisponiveis.splice(origemIndice, 1);
-
             const atual = state.passosNaOrdem[destinoSlot];
-            if (atual) {
-              state.passosDisponiveis.push(atual);
-            }
-
+            if (atual) state.passosDisponiveis.push(atual);
             state.passosNaOrdem[destinoSlot] = passo;
           } else if (state.arrastandoOrigem === "order") {
             if (state.arrastandoSlot === destinoSlot) return;
@@ -1114,12 +1071,10 @@
             state.passosNaOrdem[destinoSlot] = state.passosNaOrdem[state.arrastandoSlot];
             state.passosNaOrdem[state.arrastandoSlot] = temp;
           }
-
           renderizarDragAndDrop();
         });
       });
 
-      // Source list as drop target (to return items from order back to available)
       sourceList.addEventListener("dragover", (e) => {
         if (state.arrastandoOrigem === "order") {
           e.preventDefault();
@@ -1140,13 +1095,12 @@
         }
       });
 
-      // ── Touch support for mobile devices ──────────────────────────────────
+      // --- MOBILE SUPORTE TOUCH CORRIGIDO (DIFERENCIA SCROLL DE DRAG) ---
       let touchClone = null;
       let touchOffsetX = 0;
       let touchOffsetY = 0;
 
       function executarSoltar(clientX, clientY) {
-        // Temporarily hide clone so elementFromPoint sees the element below
         if (touchClone) touchClone.style.display = "none";
         const el = document.elementFromPoint(clientX, clientY);
         if (touchClone) touchClone.style.display = "";
@@ -1170,7 +1124,6 @@
             state.passosNaOrdem[destinoSlot] = state.passosNaOrdem[state.arrastandoSlot];
             state.passosNaOrdem[state.arrastandoSlot] = temp;
           }
-
           renderizarDragAndDrop();
         } else if (sourceList.contains(el) || el === sourceList) {
           if (state.arrastandoOrigem === "order" && state.arrastandoSlot !== null) {
@@ -1186,7 +1139,15 @@
 
       function aoIniciarTouch(id, origem, slot) {
         return function (e) {
+          // FIX CRÍTICO: Só inicia o arrastar se o usuário pegar exatamente no círculo do ícone.
+          // Se tocar fora (no texto), ignora este fluxo e deixa o browser fazer o scroll nativo da página.
+          if (!e.target.closest('.icon-bubble')) {
+            return;
+          }
+
           if (e.touches.length !== 1) return;
+          
+          state.houveMovimento = false; 
           state.arrastandoId = id;
           state.arrastandoOrigem = origem;
           state.arrastandoSlot = slot;
@@ -1208,12 +1169,12 @@
       }
 
       function aoMoverTouch(e) {
-        if (!touchClone) return;
+        if (!touchClone) return; // Deixa rolar a tela se não há arraste ativo
 
-        e.preventDefault();
+        state.houveMovimento = true;
+        e.preventDefault(); // Trava o scroll apenas se estiver de fato arrastando o ícone
       
         const touch = e.touches[0];
-      
         touchClone.style.left = `${touch.clientX - touchOffsetX}px`;
         touchClone.style.top = `${touch.clientY - touchOffsetY}px`;
       
@@ -1245,24 +1206,57 @@
         document.querySelectorAll(".dragging").forEach((el) => el.classList.remove("dragging"));
 
         executarSoltar(touch.clientX, touch.clientY);
+        
+        if (state.houveMovimento) {
+          e.preventDefault(); // Previne clique fantasma indesejado após arrastar
+        }
       }
 
-      // Attach touch handlers to source items
+      // Eventos touch associados aos itens
       sourceList.querySelectorAll(".step-item").forEach((item) => {
-        item.addEventListener("touchstart", aoIniciarTouch(
-          Number(item.dataset.id), "source", null
-        ), { passive: true });
+        item.addEventListener("touchstart", aoIniciarTouch(Number(item.dataset.id), "source", null), { passive: true });
         item.addEventListener("touchmove", aoMoverTouch, { passive: false });
         item.addEventListener("touchend", aoTerminarTouch);
       });
 
-      // Attach touch handlers to filled order items
       orderList.querySelectorAll(".step-item.in-order").forEach((item) => {
-        item.addEventListener("touchstart", aoIniciarTouch(
-          Number(item.dataset.id), "order", Number(item.dataset.slot)
-        ), { passive: true });
+        item.addEventListener("touchstart", aoIniciarTouch(Number(item.dataset.id), "order", Number(item.dataset.slot)), { passive: true });
         item.addEventListener("touchmove", aoMoverTouch, { passive: false });
         item.addEventListener("touchend", aoTerminarTouch);
+      });
+
+
+      // --- COMPORTAMENTO EXTRA DE ACESSIBILIDADE MOBILE: CLIQUE RÁPIDO PARA MOVER ---
+      sourceList.querySelectorAll(".step-item").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          // Se o usuário clicou no ícone para arrastar, ou se o item está sendo arrastado, cancela o clique automático
+          if (item.classList.contains("dragging") || e.target.closest('.icon-bubble')) return;
+          
+          const destinoSlot = state.passosNaOrdem.findIndex((s) => s === null);
+          if (destinoSlot === -1) return; // Preenchido
+
+          const id = Number(item.dataset.id);
+          const origemIndice = state.passosDisponiveis.findIndex((p) => p.id === id);
+          if (origemIndice === -1) return;
+
+          const [passo] = state.passosDisponiveis.splice(origemIndice, 1);
+          state.passosNaOrdem[destinoSlot] = passo;
+          renderizarDragAndDrop();
+        });
+      });
+
+      orderList.querySelectorAll(".step-item.in-order").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          if (item.classList.contains("dragging") || e.target.closest('.icon-bubble')) return;
+
+          const slot = Number(item.dataset.slot);
+          const passo = state.passosNaOrdem[slot];
+          if (passo) {
+            state.passosNaOrdem[slot] = null;
+            state.passosDisponiveis.push(passo);
+            renderizarDragAndDrop();
+          }
+        });
       });
     }
 
@@ -1272,12 +1266,7 @@
       const nextButton = document.getElementById("next-drag");
 
       if (state.passosNaOrdem.some((p) => p === null)) {
-        exibirFeedback(
-          feedback,
-          "error",
-          "⚠️ Atenção",
-          "Coloque todas as etapas na coluna \u201cColoque na ordem\u201d antes de validar."
-        );
+        exibirFeedback(feedback, "error", "⚠️ Atenção", "Coloque todas as etapas na coluna \u201cColoque na ordem\u201d antes de validar.");
         return;
       }
 
@@ -1294,20 +1283,9 @@
       const ordemCorreta = gramSteps.map((passo) => `${passo.icon} ${passo.texto}`);
 
       if (acertou) {
-        exibirFeedback(
-          feedback,
-          "success",
-          "✅ Excelente!",
-          "Você organizou corretamente todas as etapas da coloração de Gram."
-        );
+        exibirFeedback(feedback, "success", "✅ Excelente!", "Você organizou corretamente todas as etapas da coloração de Gram.");
       } else {
-        exibirFeedback(
-          feedback,
-          "error",
-          "❌ Ordem incorreta.",
-          "Revise a sequência correta:",
-          ordemCorreta
-        );
+        exibirFeedback(feedback, "error", "❌ Ordem incorreta.", "Revise a sequência correta:", ordemCorreta);
       }
 
       checkButton.disabled = true;
@@ -1348,9 +1326,7 @@
 
     function validarMultiplaEscolha(desafio, respostaSelecionada) {
       const botoes = Array.from(document.querySelectorAll(".option-btn"));
-      if (botoes.every((botao) => botao.disabled)) {
-        return;
-      }
+      if (botoes.every((botao) => botao.disabled)) return;
 
       const acertou = respostaSelecionada === desafio.respostaCorreta;
       registrarPontuacao(acertou);
@@ -1376,13 +1352,7 @@
       });
 
       const feedback = document.getElementById("mcq-feedback");
-      exibirFeedback(
-        feedback,
-        acertou ? "success" : "error",
-        acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta.",
-        desafio.explicacao
-      );
-
+      exibirFeedback(feedback, acertou ? "success" : "error", acertou ? "✅ Resposta correta!" : "❌ Resposta incorreta.", desafio.explicacao);
       document.getElementById("next-mcq").classList.remove("d-none");
     }
 
@@ -1417,9 +1387,7 @@
 
     function validarVerdadeiroFalso(desafio, respostaSelecionada) {
       const botoes = Array.from(document.querySelectorAll(".tf-btn"));
-      if (botoes.every((botao) => botao.disabled)) {
-        return;
-      }
+      if (botoes.every((botao) => botao.disabled)) return;
 
       const acertou = respostaSelecionada === desafio.resposta;
       registrarPontuacao(acertou);
@@ -1443,13 +1411,7 @@
       });
 
       const feedback = document.getElementById("tf-feedback");
-      exibirFeedback(
-        feedback,
-        acertou ? "success" : "error",
-        acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez.",
-        desafio.explicacao
-      );
-
+      exibirFeedback(feedback, acertou ? "success" : "error", acertou ? "✅ Muito bem!" : "❌ Não foi dessa vez.", desafio.explicacao);
       document.getElementById("next-tf").classList.remove("d-none");
     }
 
